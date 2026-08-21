@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "numinous-agent"
+version = "0.1.0"
+description = "A modular, extensible agent framework (MVP)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Numinous-Agent" }]
+dependencies = []
+
+[project.optional-dependencies]
+llm = ["httpx>=0.24.0"]
+
+[project.scripts]
+numinous = "numinous_agent.interfaces.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"numinous_agent.interfaces" = ["static/*.html", "static/*.css", "static/*.js"]

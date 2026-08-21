@@ -1,0 +1,2 @@
+[console_scripts]
+numinous = numinous_agent.interfaces.cli:main

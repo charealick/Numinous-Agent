@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Numinous-Agent 控制台</title>
+<style>
+:root {
+  --bg: #0f1115;
+  --panel: #1a1d24;
+  --panel-2: #22262f;
+  --border: #2e3440;
+  --text: #e5e7eb;
+  --text-dim: #9ca3af;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --user-bubble: #6366f1;
+  --ai-bubble: #2a2f3a;
+  --success: #34d399;
+  --danger: #f87171;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+header .brand {
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+header .brand .logo {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+}
+header .status {
+  display: flex; align-items: center; gap: 16px;
+  font-size: 13px; color: var(--text-dim);
+}
+header .status .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--success); display: inline-block;
+  margin-right: 4px;
+}
+.model-select {
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+.sidebar {
+  width: 240px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+.sidebar h3 {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.sidebar .item {
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: var(--panel-2);
+  border: 1px solid transparent;
+}
+.sidebar .item .name { color: var(--accent-hover); font-weight: 600; }
+.sidebar .item .desc { color: var(--text-dim); font-size: 12px; margin-top: 2px; }
+.sidebar .section { margin-bottom: 20px; }
+.sidebar .empty { color: var(--text-dim); font-size: 12px; }
+.chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.msg {
+  max-width: 72%;
+  padding: 12px 16px;
+  border-radius: 14px;
+  line-height: 1.6;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.msg.user {
+  align-self: flex-end;
+  background: var(--user-bubble);
+  border-bottom-right-radius: 4px;
+}
+.msg.assistant {
+  align-self: flex-start;
+  background: var(--ai-bubble);
+  border-bottom-left-radius: 4px;
+}
+.msg.error {
+  align-self: flex-start;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+.msg .meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.input-bar {
+  padding: 16px 24px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.input-bar textarea {
+  flex: 1;
+  resize: none;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 12px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  min-height: 46px;
+  max-height: 160px;
+  line-height: 1.5;
+}
+.input-bar textarea:focus { border-color: var(--accent); }
+.input-bar button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.input-bar button:hover { background: var(--accent-hover); }
+.input-bar button:disabled { opacity: 0.5; cursor: not-allowed; }
+.typing {
+  align-self: flex-start;
+  background: var(--ai-bubble);
+  padding: 14px 18px;
+  border-radius: 14px;
+  border-bottom-left-radius: 4px;
+  display: flex; gap: 4px;
+}
+.typing span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-dim); animation: bounce 1.2s infinite;
+}
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="logo"></span>Numinous-Agent 控制台</div>
+  <div class="status">
+    <span><span class="dot"></span>服务在线</span>
+    <select id="modelSelect" class="model-select" title="切换模型"></select>
+  </div>
+</header>
+<main>
+  <aside class="sidebar">
+    <div class="section">
+      <h3>工具</h3>
+      <div id="toolsList"></div>
+    </div>
+    <div class="section">
+      <h3>技能</h3>
+      <div id="skillsList"></div>
+    </div>
+  </aside>
+  <div class="chat-area">
+    <div class="messages" id="messages"></div>
+    <div class="input-bar">
+      <textarea id="input" placeholder="输入消息，Ctrl+Enter 发送..." rows="1"></textarea>
+      <button id="sendBtn">发送</button>
+    </div>
+  </div>
+</main>
+
+<script>
+const $ = (sel) => document.querySelector(sel);
+const messagesEl = $('#messages');
+const inputEl = $('#input');
+const sendBtn = $('#sendBtn');
+const modelSelect = $('#modelSelect');
+let session = 'web-' + Date.now();
+
+// 初始化欢迎消息
+addMessage('assistant', '你好！我是 Numinous-Agent，一个模块化智能体。有什么可以帮你的吗？');
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+  });
+  return res.json();
+}
+
+function addMessage(role, content, extra = '') {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  if (extra) div.className += ' error';
+  if (role === 'assistant' && !extra) {
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = 'Assistant';
+    div.appendChild(meta);
+  }
+  div.appendChild(document.createTextNode(content));
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const div = document.createElement('div');
+  div.className = 'typing';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
+}
+
+async function send() {
+  const prompt = inputEl.value.trim();
+  if (!prompt) return;
+
+  addMessage('user', prompt);
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  const typing = showTyping();
+  try {
+    const data = await api('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ prompt, session }),
+    });
+    typing.remove();
+    if (data.ok) {
+      addMessage('assistant', data.reply);
+    } else {
+      addMessage('assistant', data.error || '请求失败', 'error');
+    }
+  } catch (e) {
+    typing.remove();
+    addMessage('assistant', '网络错误: ' + e.message, 'error');
+  } finally {
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+}
+
+async function loadModels() {
+  const data = await api('/api/models');
+  modelSelect.innerHTML = '';
+  if (data.ok && data.models.length) {
+    data.models.forEach((name) => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      if (name === data.active) opt.selected = true;
+      modelSelect.appendChild(opt);
+    });
+  }
+}
+
+modelSelect.addEventListener('change', async () => {
+  const name = modelSelect.value;
+  const data = await api('/api/models/switch', {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  });
+  if (!data.ok) {
+    addMessage('assistant', '切换模型失败: ' + data.error, 'error');
+  } else {
+    addMessage('assistant', '已切换到模型: ' + name);
+  }
+});
+
+async function loadSidebar() {
+  const tools = await api('/api/tools');
+  const skills = await api('/api/skills');
+  const toolsList = $('#toolsList');
+  const skillsList = $('#skillsList');
+  toolsList.innerHTML = '';
+  skillsList.innerHTML = '';
+
+  if (tools.ok && tools.tools.length) {
+    tools.tools.forEach((t) => {
+      toolsList.innerHTML += `<div class="item"><div class="name">${t.name}</div><div class="desc">${t.description || ''}</div></div>`;
+    });
+  } else {
+    toolsList.innerHTML = '<div class="empty">（无）</div>';
+  }
+
+  if (skills.ok && skills.skills.length) {
+    skills.skills.forEach((s) => {
+      skillsList.innerHTML += `<div class="item"><div class="name">${s.name}</div><div class="desc">${s.description || ''}</div></div>`;
+    });
+  } else {
+    skillsList.innerHTML = '<div class="empty">（无）</div>';
+  }
+}
+
+sendBtn.addEventListener('click', send);
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    send();
+  }
+});
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + 'px';
+});
+
+loadModels();
+loadSidebar();
+inputEl.focus();
+</script>
+</body>
+</html>
